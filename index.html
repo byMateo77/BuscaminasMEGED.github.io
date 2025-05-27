@@ -159,14 +159,42 @@
           flagged: false,
           row,
           col,
-          adjacentMines: 0
+          adjacentMines: 0,
+          touchTimer: null,
+          touched: false
         };
         cell.element.classList.add("cell");
-        cell.element.addEventListener("click", () => revealCell(row, col));
+
+        // Click normal para revelar
+        cell.element.addEventListener("click", () => {
+          if (!cell.touched) revealCell(row, col);
+          cell.touched = false;
+        });
+
+        // Context menu (clic derecho) para poner bandera
         cell.element.addEventListener("contextmenu", (e) => {
           e.preventDefault();
           toggleFlag(row, col);
         });
+
+        // Detectar toque largo para móvil
+        cell.element.addEventListener("touchstart", (e) => {
+          e.preventDefault();
+          cell.touched = false;
+          cell.touchTimer = setTimeout(() => {
+            toggleFlag(row, col);
+            cell.touched = true; // Marca que fue toque largo, evitar revelar
+          }, 600);
+        });
+
+        cell.element.addEventListener("touchend", (e) => {
+          clearTimeout(cell.touchTimer);
+        });
+
+        cell.element.addEventListener("touchcancel", (e) => {
+          clearTimeout(cell.touchTimer);
+        });
+
         boardElement.appendChild(cell.element);
         board[row][col] = cell;
       }
