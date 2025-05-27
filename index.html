@@ -167,8 +167,11 @@
 
         // Click normal para revelar
         cell.element.addEventListener("click", () => {
-          if (!cell.touched) revealCell(row, col);
-          cell.touched = false;
+          // Solo revela si NO fue toque largo (touched === false) y juego no terminado
+          if (!cell.touched && !gameOver) {
+            revealCell(row, col);
+          }
+          cell.touched = false; // reset para próximo toque
         });
 
         // Context menu (clic derecho) para poner bandera
@@ -180,10 +183,10 @@
         // Detectar toque largo para móvil
         cell.element.addEventListener("touchstart", (e) => {
           e.preventDefault();
-          cell.touched = false;
+          cell.touched = false; // reset bandera toque largo
           cell.touchTimer = setTimeout(() => {
             toggleFlag(row, col);
-            cell.touched = true; // Marca que fue toque largo, evitar revelar
+            cell.touched = true; // marcar que fue toque largo
           }, 600);
         });
 
@@ -288,21 +291,20 @@
 
   function checkWin() {
     let correctFlags = 0;
-    let totalFlags = 0;
+    let totalMines = 0;
+
     for (let row = 0; row < boardSize; row++) {
       for (let col = 0; col < boardSize; col++) {
         const cell = board[row][col];
-        if (cell.flagged) {
-          totalFlags++;
-          if (cell.mine) {
-            correctFlags++;
-          }
-        }
+        if (cell.mine) totalMines++;
+        if (cell.flagged && cell.mine) correctFlags++;
       }
     }
-    if (correctFlags === mineCount && totalFlags === mineCount) {
+
+    // Ganas si tienes todas las minas marcadas con bandera y no hay banderas demás
+    if (correctFlags === mineCount && flagsPlaced === mineCount) {
       gameOver = true;
-      showMessage("¡Ganaste!");
+      showMessage("¡Ganaste! 🎉");
       revealAll();
     }
   }
@@ -330,11 +332,11 @@
     createBoard();
   }
 
-  difficultySelect.addEventListener("change", resetGame);
+  difficultySelect.addEventListener("change", () => {
+    resetGame();
+  });
 
-  // Inicializar
-  setDifficulty();
-  createBoard();
+  resetGame();
 </script>
 
 </body>
